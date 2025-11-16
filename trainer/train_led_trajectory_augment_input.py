@@ -5,6 +5,7 @@ import torch
 import random
 import numpy as np
 import torch.nn as nn
+import gc
 
 from utils.config import Config
 from utils.utils import print_log
@@ -37,7 +38,7 @@ class Trainer:
 			train_dset,
 			batch_size=self.cfg.train_batch_size,
 			shuffle=True,
-			num_workers=4,
+			num_workers=0,  # Set to 0 for Windows/WSL compatibility to avoid crashes
 			collate_fn=seq_collate,
 			pin_memory=True)
 		
@@ -50,7 +51,7 @@ class Trainer:
 			test_dset,
 			batch_size=self.cfg.test_batch_size,
 			shuffle=False,
-			num_workers=4,
+			num_workers=0,  # Set to 0 for Windows/WSL compatibility to avoid crashes
 			collate_fn=seq_collate,
 			pin_memory=True)
 		
@@ -434,6 +435,16 @@ class Trainer:
 					performance['FDE'][time_i-1] += fde.item()
 				samples += distances.shape[0]
 				count += 1
+				
+				# Memory cleanup every 10 batches to prevent memory accumulation
+				if count % 10 == 0:
+					# Explicitly delete large tensors to free memory
+					del pred_traj, distances
+					# Note: fut_traj is modified in-place, but will be recreated from data in next iteration
+					torch.cuda.empty_cache()
+					gc.collect()
+					print_log(f'Processed {count} batches, samples: {samples}', log=self.log)
+				
 					# if count==2:
 					# 	break
 		for time_i in range(4):

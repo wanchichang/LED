@@ -72,8 +72,16 @@ pip install -r requirements.txt
 
 # Command 2:
 pip install torch==1.8.0+cu111 torchvision==0.9.0+cu111 torchaudio==0.8.0 -f https://download.pytorch.org/whl/torch_stable.html
+# sm_120 arch for 5070
+pip3 install --pre torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/cu128
+
 pip install easydict
 pip install glob2
+pip install pyyaml
+
+#fastapi
+pip install fastapi uvicorn numpy
+
 ```
 
 
